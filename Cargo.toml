@@ -1,0 +1,18 @@
+[package]
+name = "my_vst_synth"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "my_vst_synth"
+crate-type = ["cdylib"]
+
+[dependencies]
+vst = "0.3.0"
+rand = "0.8.5"
+
+[profile.release]
+lto = true
+panic = "unwind"
+codegen-units = 1
+opt-level = 3
