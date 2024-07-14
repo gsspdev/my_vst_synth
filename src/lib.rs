@@ -23,6 +23,14 @@ enum OscType {
     Noise,
 }
 
+enum EnvelopeStage {
+    Idle,
+    Attack,
+    Decay,
+    Sustain,
+    Release,
+}
+
 // Oscillator struct
 struct Oscillator {
     phase: f32,
@@ -61,7 +69,7 @@ impl Oscillator {
 
         output
     }
-}
+}    
 
 // ADSR envelope
 struct Envelope {
@@ -74,16 +82,8 @@ struct Envelope {
     sample_rate: f32,
 }
 
-enum EnvelopeStage {
-    Idle,
-    Attack,
-    Decay,
-    Sustain,
-    Release,
-}
-
 impl Envelope {
-    fn new(sample_rate: f32) -> Envelope {
+    fn new(sample_rate: f32, ) -> Envelope {
         Envelope {
             attack: 0.01,
             decay: 0.1,
@@ -94,16 +94,42 @@ impl Envelope {
             sample_rate,
         }
     }
-
     fn trigger(&mut self) {
         self.stage = EnvelopeStage::Attack;
         self.level = 0.0;
     }
 
-    fn release(&mut self) {
+    fn d_stage(&mut self) {
+        self.stage = EnvelopeStage::Decay;
+    }
+
+    fn s_stage(&mut self) {
+        self.stage = EnvelopeStage::Decay;
+    }
+
+    fn r_stage(&mut self) {
         self.stage = EnvelopeStage::Release;
     }
 
+    fn mod_atk(&mut self, new_value: f32) -> f32 {
+        self.attack =  new_value;
+        new_value
+    }
+
+    fn mod_dec(&mut self, new_value: f32) -> f32 {
+        self.decay = new_value;
+        new_value
+    }
+
+    fn mod_sus(&mut self, new_value: f32) -> f32 {
+        self.sustain = new_value;
+        new_value
+    }
+
+    fn mod_rel(&mut self, new_value: f32) -> f32 {
+        self.release = new_value;
+        new_value
+    }
     fn process(&mut self) -> f32 {
         match self.stage {
             EnvelopeStage::Idle => self.level = 0.0,
@@ -175,7 +201,7 @@ impl LFO {
     fn new() -> LFO {
         LFO {
             phase: 0.0,
-            freq: 1.0,
+            freq: 2.4,
         }
     }
 
@@ -296,7 +322,7 @@ impl Plugin for MySynth {
                     match ev.data[0] {
                         128 => { // Note Off
                             if ev.data[1] == self.note {
-                                self.envelope.release();
+                                self.envelope.r_stage();
                             }
                         },
                         144 => { // Note On
@@ -346,8 +372,8 @@ impl PluginParameters for SynthParams {
             1 => self.osc2_freq.set(value * 20000.0),
             2 => self.filter_cutoff.set(value * 20000.0),
             3 => self.filter_resonance.set(value),
-            4 => self.lfo_freq.set(value * 10.0),
-            5 => self.lfo_amount.set(value),
+            4 => self.lfo_freq.set(value * 20.0),
+            5 => self.lfo_amount.set(value * 2.0),
             _ => (),
         }
     }
